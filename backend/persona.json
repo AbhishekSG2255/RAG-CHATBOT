@@ -1,0 +1,98 @@
+{
+  "habits": [
+    "Mentions food/drinks frequently: pizza, tacos, chicken, pasta",
+    "Physically active — mentions exercise, hiking, or outdoor activity regularly",
+    "Enjoys spending time outdoors and in nature",
+    "Avid reader — frequently mentions books and reading",
+    "Enjoys cooking and trying new recipes at home",
+    "Music is a significant part of their life — listens and/or plays instruments",
+    "Prioritizes spending quality time with family",
+    "Pet owner — has cat, fish, bird, horse, dog"
+  ],
+  "personal_facts": {
+    "likely_occupations": [
+      "park ranger",
+      "dentist",
+      "student",
+      "nurse",
+      "software engineer",
+      "musician",
+      "photographer",
+      "writer",
+      "teacher",
+      "EMT",
+      "personal trainer",
+      "artist",
+      "doctor",
+      "police officer",
+      "actor",
+      "firefighter",
+      "chef"
+    ],
+    "hobbies": [
+      "scuba diving",
+      "running",
+      "hiking",
+      "archery",
+      "sports",
+      "cycling",
+      "dancing",
+      "gaming",
+      "fishing",
+      "yoga"
+    ],
+    "pets": [
+      "cat",
+      "fish",
+      "bird",
+      "horse",
+      "dog"
+    ],
+    "family_relationships": [
+      "has kids",
+      "has siblings",
+      "married/partner",
+      "close to family"
+    ],
+    "mentioned_books_authors": [
+      "Harry Potter",
+      "Outlander",
+      "The Nightingale",
+      "The Great Gatsby",
+      "The Princess Bride",
+      "Name Of The Wind"
+    ]
+  },
+  "personality": {
+    "overall_tone": "very positive and upbeat",
+    "humor": "frequently uses humor and lighthearted expressions",
+    "empathy": "highly empathetic — often acknowledges others feelings",
+    "curiosity": "very curious — asks many questions",
+    "openness": "very open and willing to share personal details",
+    "enthusiasm": "generally enthusiastic",
+    "key_traits": [
+      "optimistic",
+      "empathetic",
+      "humorous",
+      "curious",
+      "open"
+    ]
+  },
+  "communication_style": {
+    "avg_words_per_message": 11.3,
+    "message_length": "short to medium (conversational)",
+    "exclamation_usage": "frequent",
+    "question_asking": "occasional",
+    "formality": "very casual and informal",
+    "emoji_usage": "occasional",
+    "common_phrases": [
+      "a lot of",
+      "i like to",
+      "i love to",
+      "what do you",
+      "do you like"
+    ]
+  },
+  "summary": "This user appears to be or mentions occupations like: park ranger, dentist, student. They tend to be very positive and upbeat in their conversations. Key personality traits: optimistic, empathetic, humorous, curious, open. Their interests include: scuba diving, running, hiking, archery, sports. Communication style: short to medium (conversational), very casual and informal.",
+  "total_messages_analyzed": 191592
+}
