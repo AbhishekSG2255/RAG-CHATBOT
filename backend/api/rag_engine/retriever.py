@@ -31,6 +31,7 @@ def retrieve_and_answer(
     hundred_summaries: list[dict],
     messages_db,
     groq_api_key: str = '',
+    history: list[dict] = None,
 ) -> dict:
     """
     Main retrieval + answer generation function.
@@ -38,6 +39,7 @@ def retrieve_and_answer(
     Returns:
         {
             'answer': str,
+            'answer_mode': str,
             'sources': {
                 'semantic_chunks': list,
                 'topic_summaries': list,
@@ -57,13 +59,16 @@ def retrieve_and_answer(
     context = _build_context(query, semantic_chunks, matched_topics, hundred_summaries)
 
     # 4. Generate answer
+    answer_mode = "extractive"
     if groq_api_key:
-        answer = _groq_answer(query, context, groq_api_key)
+        answer = _groq_answer(query, context, groq_api_key, history)
+        answer_mode = "groq"
     else:
         answer = _extractive_answer(query, context)
 
     return {
         'answer': answer,
+        'answer_mode': answer_mode,
         'sources': {
             'semantic_chunks': semantic_chunks[:3],
             'topic_summaries': matched_topics,
@@ -210,19 +215,26 @@ def _extractive_answer(query: str, context: str) -> str:
     return f"{intro}\n\n{answer_body}"
 
 
-def _groq_answer(query: str, context: str, api_key: str) -> str:
+def _groq_answer(query: str, context: str, api_key: str, history: list[dict] = None) -> str:
     """Use Groq API (Llama 3) for high-quality natural language answers."""
     import requests
 
-    prompt = f"""You are a helpful assistant analyzing conversation data. 
+    system_prompt = f"""You are a helpful assistant analyzing conversation data. 
 Use ONLY the provided context to answer the question. Be concise and specific.
 
 Context from conversations:
-{context[:3000]}
+{context[:3000]}"""
 
-Question: {query}
-
-Answer:"""
+    messages = [{'role': 'system', 'content': system_prompt}]
+    
+    if history:
+        for msg in history[-6:]: # Keep only last 6 to save tokens
+            role = msg.get('role', 'user')
+            if role == 'bot':
+                role = 'assistant'
+            messages.append({'role': role, 'content': msg.get('content', '')})
+            
+    messages.append({'role': 'user', 'content': query})
 
     try:
         resp = requests.post(
@@ -233,7 +245,7 @@ Answer:"""
             },
             json={
                 'model': 'llama3-8b-8192',
-                'messages': [{'role': 'user', 'content': prompt}],
+                'messages': messages,
                 'max_tokens': 500,
                 'temperature': 0.3,
             },

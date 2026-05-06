@@ -27,6 +27,8 @@ class TopicCheckpoint(models.Model):
     topic_number = models.IntegerField()
     start_global_index = models.IntegerField()
     end_global_index = models.IntegerField()
+    conversation_day_start = models.IntegerField(null=True, blank=True)
+    conversation_day_end = models.IntegerField(null=True, blank=True)
     summary = models.TextField()
     keywords = models.TextField()  # JSON list of keywords
     created_at = models.DateTimeField(auto_now_add=True)

@@ -8,7 +8,7 @@ const api = axios.create({
 
 export const startProcessing  = ()         => api.post('/process/')
 export const getStatus        = ()         => api.get('/status/')
-export const sendChat         = (query)    => api.post('/chat/', { query })
+export const sendChat         = (query, history=[]) => api.post('/chat/', { query, history })
 export const getPersona       = ()         => api.get('/persona/')
 export const getTopics        = (page=1, search='') =>
   api.get('/topics/', { params: { page, page_size: 25, search } })

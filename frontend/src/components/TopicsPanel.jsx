@@ -111,6 +111,11 @@ export default function TopicsPanel() {
                     <div className="topic-meta">
                       <span className="topic-number">Topic {topic.topic_number}</span>
                       <span className="topic-range">
+                        {topic.conversation_day_start !== null && topic.conversation_day_end !== null && (
+                          <span style={{ color: 'var(--amber)', marginRight: '6px' }}>
+                            Day {topic.conversation_day_start}{topic.conversation_day_start !== topic.conversation_day_end ? `–${topic.conversation_day_end}` : ''} |
+                          </span>
+                        )}
                         msgs {topic.start_global_index} – {topic.end_global_index}
                         &nbsp;({topic.end_global_index - topic.start_global_index + 1} messages)
                       </span>

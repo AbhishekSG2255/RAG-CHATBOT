@@ -18,6 +18,7 @@ class TopicCheckpointSerializer(serializers.ModelSerializer):
     class Meta:
         model = TopicCheckpoint
         fields = ['topic_id', 'topic_number', 'start_global_index', 'end_global_index',
+                  'conversation_day_start', 'conversation_day_end',
                   'summary', 'keywords', 'created_at']
 
     def get_keywords(self, obj):

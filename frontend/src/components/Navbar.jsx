@@ -1,8 +1,9 @@
 export default function Navbar({ activeTab, onTabChange, processingStatus }) {
   const tabs = [
-    { id: 'chat',     label: 'Chat',    icon: '💬' },
-    { id: 'persona',  label: 'Persona', icon: '🧠' },
-    { id: 'topics',   label: 'Topics',  icon: '🗺️' },
+    { id: 'chat',        label: 'Chat',        icon: '💬' },
+    { id: 'persona',     label: 'Persona',     icon: '🧠' },
+    { id: 'topics',      label: 'Topics',      icon: '🗺️' },
+    { id: 'checkpoints', label: 'Checkpoints', icon: '📋' },
   ]
 
   const dotClass = processingStatus?.status === 'done'

@@ -3,6 +3,7 @@ import Navbar from './components/Navbar'
 import ChatWindow from './components/ChatWindow'
 import PersonaPanel from './components/PersonaPanel'
 import TopicsPanel from './components/TopicsPanel'
+import CheckpointsPanel from './components/CheckpointsPanel'
 import { getStatus, startProcessing } from './api/client'
 
 const POLL_INTERVAL = 3000 // 3 seconds
@@ -152,9 +153,10 @@ export default function App() {
           <SetupScreen status={procStatus} onStart={handleStartProcessing} />
         ) : (
           <>
-            {activeTab === 'chat'    && <ChatWindow    isReady={isReady} />}
-            {activeTab === 'persona' && <PersonaPanel />}
-            {activeTab === 'topics'  && <TopicsPanel  />}
+            {activeTab === 'chat'        && <ChatWindow    isReady={isReady} />}
+            {activeTab === 'persona'     && <PersonaPanel />}
+            {activeTab === 'topics'      && <TopicsPanel  />}
+            {activeTab === 'checkpoints' && <CheckpointsPanel />}
           </>
         )}
       </div>

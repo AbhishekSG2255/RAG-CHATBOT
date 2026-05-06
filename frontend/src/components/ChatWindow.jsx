@@ -28,6 +28,8 @@ function TypingIndicator() {
 function MessageBubble({ msg }) {
   const isUser = msg.role === 'user'
   const text = msg.content || ''
+  const [expandedSources, setExpandedSources] = useState(false)
+
   // Convert **bold** markdown to <strong>
   const formatted = text
     .split('\n')
@@ -48,6 +50,8 @@ function MessageBubble({ msg }) {
   const sources = msg.sources
   const hasSemanticSources = sources?.semantic_chunks?.length > 0
   const hasTopicSources = sources?.topic_summaries?.length > 0
+  
+  const modeBadge = msg.answer_mode === 'groq' ? '✨ AI' : msg.answer_mode === 'persona' ? '🧠 Persona' : '📝 Extractive'
 
   return (
     <div className={`message-row ${isUser ? 'user' : 'bot'}`}>
@@ -55,17 +59,41 @@ function MessageBubble({ msg }) {
         {isUser ? '👤' : '🤖'}
       </div>
       <div className={`bubble ${isUser ? 'user' : 'bot'}`}>
+        {!isUser && msg.answer_mode && (
+           <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '4px', textAlign: 'right' }}>
+             {modeBadge}
+           </div>
+        )}
         {formatted}
         {!isUser && (hasSemanticSources || hasTopicSources) && (
-          <div className="bubble-sources">
-            <span style={{ marginRight: 6 }}>Sources:</span>
-            {hasTopicSources && sources.topic_summaries.map((t, i) => (
-              <span key={i} className="source-tag">Topic {t.topic_number}</span>
-            ))}
-            {hasSemanticSources && (
-              <span className="source-tag">
-                {sources.semantic_chunks.length} message chunk{sources.semantic_chunks.length > 1 ? 's' : ''}
-              </span>
+          <div className="bubble-sources" onClick={() => setExpandedSources(!expandedSources)} style={{ cursor: 'pointer' }}>
+            <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '6px' }}>
+              <span style={{ marginRight: 6 }}>Sources {expandedSources ? '▼' : '▶'}:</span>
+              {hasTopicSources && sources.topic_summaries.map((t, i) => (
+                <span key={`t-${i}`} className="source-tag">Topic {t.topic_number}</span>
+              ))}
+              {hasSemanticSources && (
+                <span className="source-tag">
+                  {sources.semantic_chunks.length} message chunk{sources.semantic_chunks.length > 1 ? 's' : ''}
+                </span>
+              )}
+            </div>
+            
+            {expandedSources && (
+              <div style={{ marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {hasTopicSources && sources.topic_summaries.map((t, i) => (
+                  <div key={`ts-${i}`} style={{ background: 'rgba(0,0,0,0.1)', padding: '8px', borderRadius: '4px', fontSize: '0.8rem' }}>
+                    <strong>Topic {t.topic_number} (msgs {t.start_global_index}-{t.end_global_index}):</strong><br/>
+                    {t.summary}
+                  </div>
+                ))}
+                {hasSemanticSources && sources.semantic_chunks.map((c, i) => (
+                  <div key={`cs-${i}`} style={{ background: 'rgba(0,0,0,0.1)', padding: '8px', borderRadius: '4px', fontSize: '0.8rem' }}>
+                    <strong>Messages {c.start_global}-{c.end_global}:</strong><br/>
+                    {c.preview}...
+                  </div>
+                ))}
+              </div>
             )}
           </div>
         )}
@@ -75,13 +103,17 @@ function MessageBubble({ msg }) {
 }
 
 export default function ChatWindow({ isReady }) {
-  const [messages, setMessages] = useState([])
+  const [messages, setMessages] = useState(() => {
+    const saved = localStorage.getItem('chatHistory')
+    return saved ? JSON.parse(saved) : []
+  })
   const [input, setInput]       = useState('')
   const [loading, setLoading]   = useState(false)
   const bottomRef = useRef(null)
   const textareaRef = useRef(null)
 
   useEffect(() => {
+    localStorage.setItem('chatHistory', JSON.stringify(messages))
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, loading])
 
@@ -90,15 +122,17 @@ export default function ChatWindow({ isReady }) {
     if (!query || loading) return
 
     const userMsg = { role: 'user', content: query, id: Date.now() }
-    setMessages(prev => [...prev, userMsg])
+    const newMessages = [...messages, userMsg]
+    setMessages(newMessages)
     setInput('')
     setLoading(true)
 
     try {
-      const res = await sendChat(query)
+      const res = await sendChat(query, newMessages.slice(0, -1)) // Pass history without current query
       const botMsg = {
         role: 'bot',
         content: res.data.answer,
+        answer_mode: res.data.answer_mode,
         sources: res.data.sources,
         id: Date.now() + 1,
       }
@@ -122,8 +156,20 @@ export default function ChatWindow({ isReady }) {
     }
   }
 
+  const clearHistory = () => {
+    if (window.confirm("Clear chat history?")) {
+      setMessages([])
+      localStorage.removeItem('chatHistory')
+    }
+  }
+
   return (
     <div className="chat-layout">
+      {messages.length > 0 && (
+        <button onClick={clearHistory} style={{ position: 'absolute', top: 10, right: 10, zIndex: 10, background: 'var(--bg-glass)', border: '1px solid var(--border)', borderRadius: '4px', color: 'var(--text-muted)', cursor: 'pointer', padding: '4px 8px' }}>
+          Clear History
+        </button>
+      )}
       <div className="chat-messages">
         {messages.length === 0 ? (
           <div className="chat-empty">

@@ -98,10 +98,15 @@ def _run_pipeline():
             seg_messages = seg['messages']
             summary = summarize_messages(seg_messages, max_sentences=4)
             keywords = get_top_keywords([m['text'] for m in seg_messages])
+            day_start = min(m['conversation_id'] for m in seg_messages)
+            day_end = max(m['conversation_id'] for m in seg_messages)
+
             topic_objects.append(TopicCheckpoint(
                 topic_number=i + 1,
                 start_global_index=seg['start'],
                 end_global_index=seg['end'],
+                conversation_day_start=day_start,
+                conversation_day_end=day_end,
                 summary=summary,
                 keywords=json.dumps(keywords),
             ))

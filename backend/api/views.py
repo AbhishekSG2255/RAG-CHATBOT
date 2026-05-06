@@ -103,6 +103,7 @@ class ChatView(APIView):
 
     def post(self, request):
         query = request.data.get('query', '').strip()
+        history = request.data.get('history', [])
         if not query:
             return Response({'error': 'query is required'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -126,6 +127,7 @@ class ChatView(APIView):
             if persona_answer:
                 return Response({
                     'answer': persona_answer,
+                    'answer_mode': 'persona',
                     'sources': {'type': 'persona'},
                     'query': query,
                 })
@@ -154,10 +156,12 @@ class ChatView(APIView):
                 hundred_summaries=hundred_summaries,
                 messages_db=Message,
                 groq_api_key=settings.GROQ_API_KEY,
+                history=history,
             )
 
             return Response({
                 'answer': result['answer'],
+                'answer_mode': result.get('answer_mode', 'extractive'),
                 'sources': result['sources'],
                 'query': query,
             })
@@ -266,15 +270,28 @@ def _load_persona() -> dict:
         return {}
 
 
-def _try_persona_answer(query: str, persona: dict) -> str:
+def _try_persona_answer(query: str, persona_data: dict) -> str:
     """Try to answer directly from persona data for common questions."""
     q = query.lower()
+
+    target_speaker = "User 1"
+    if "user 2" in q:
+        target_speaker = "User 2"
+
+    if target_speaker not in persona_data and "habits" in persona_data:
+        # Fallback to old format
+        persona = persona_data
+    else:
+        persona = persona_data.get(target_speaker, {})
+
+    if not persona:
+        return ""
 
     if any(w in q for w in ['habit', 'routine', 'daily', 'sleep', 'eat', 'food']):
         habits = persona.get('habits', [])
         if habits:
             return (
-                "Based on the conversations, here are the user's habits and routines:\n\n"
+                f"Based on the conversations, here are {target_speaker}'s habits and routines:\n\n"
                 + "\n".join(f"• {h}" for h in habits)
             )
 
@@ -285,7 +302,7 @@ def _try_persona_answer(query: str, persona: dict) -> str:
         tone = personality.get('overall_tone', '')
         humor = personality.get('humor', '')
 
-        answer = "Based on the conversations, here's what kind of person this user appears to be:\n\n"
+        answer = f"Based on the conversations, here's what kind of person {target_speaker} appears to be:\n\n"
         if summary:
             answer += f"{summary}\n\n"
         if traits:
@@ -299,7 +316,7 @@ def _try_persona_answer(query: str, persona: dict) -> str:
     if any(w in q for w in ['talk', 'speak', 'communicate', 'style', 'write', 'message']):
         style = persona.get('communication_style', {})
         if style:
-            answer = "Here's how this user communicates:\n\n"
+            answer = f"Here's how {target_speaker} communicates:\n\n"
             for key, val in style.items():
                 if key != 'common_phrases':
                     answer += f"• **{key.replace('_', ' ').title()}**: {val}\n"
@@ -313,7 +330,7 @@ def _try_persona_answer(query: str, persona: dict) -> str:
         hobbies = facts.get('hobbies', [])
         if hobbies:
             return (
-                "Based on the conversations, here are the user's interests and hobbies:\n\n"
+                f"Based on the conversations, here are {target_speaker}'s interests and hobbies:\n\n"
                 + "\n".join(f"• {h.title()}" for h in hobbies)
             )
 
@@ -322,7 +339,7 @@ def _try_persona_answer(query: str, persona: dict) -> str:
         occs = facts.get('likely_occupations', [])
         if occs:
             return (
-                "Based on mentions in conversations, this user's likely occupations include:\n\n"
+                f"Based on mentions in conversations, {target_speaker}'s likely occupations include:\n\n"
                 + "\n".join(f"• {o.title()}" for o in occs)
             )
 

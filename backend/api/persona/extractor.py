@@ -93,22 +93,12 @@ EMPATHY_PATTERNS = ["i'm sorry", "that's tough", "i understand", "i can imagine"
 
 # ─── Main Extractor ────────────────────────────────────────────────────────────
 
-def extract_persona(messages: list[dict]) -> dict:
-    """
-    Extract a structured persona from message dicts.
-
-    Returns a dict suitable for JSON serialization:
-    {
-        "habits": [...],
-        "personal_facts": {...},
-        "personality": {...},
-        "communication_style": {...},
-        "summary": "...",
-    }
-    """
-    logger.info(f"Extracting persona from {len(messages)} messages...")
-
-    all_texts = [m['text'] for m in messages]
+def _extract_persona_for_speaker(messages: list[dict], speaker: str) -> dict:
+    speaker_messages = [m for m in messages if m.get('speaker') == speaker]
+    if not speaker_messages:
+        return {}
+        
+    all_texts = [m['text'] for m in speaker_messages]
     combined_lower = ' '.join(all_texts).lower()
 
     habits = _extract_habits(all_texts, combined_lower)
@@ -117,13 +107,31 @@ def extract_persona(messages: list[dict]) -> dict:
     comm_style = _extract_communication_style(all_texts)
     summary = _build_summary(habits, personal_facts, personality, comm_style)
 
-    persona = {
+    return {
         "habits": habits,
         "personal_facts": personal_facts,
         "personality": personality,
         "communication_style": comm_style,
         "summary": summary,
-        "total_messages_analyzed": len(messages),
+        "total_messages_analyzed": len(speaker_messages),
+    }
+
+
+def extract_persona(messages: list[dict]) -> dict:
+    """
+    Extract a structured persona from message dicts, separated by speaker.
+
+    Returns a dict suitable for JSON serialization:
+    {
+        "User 1": { "habits": [...], ... },
+        "User 2": { "habits": [...], ... }
+    }
+    """
+    logger.info(f"Extracting persona from {len(messages)} messages...")
+
+    persona = {
+        "User 1": _extract_persona_for_speaker(messages, "User 1"),
+        "User 2": _extract_persona_for_speaker(messages, "User 2"),
     }
 
     logger.info("Persona extraction complete.")

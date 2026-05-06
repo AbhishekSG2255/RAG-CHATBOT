@@ -29,13 +29,14 @@ function FactRows({ obj }) {
 }
 
 export default function PersonaPanel() {
-  const [persona, setPersona] = useState(null)
+  const [personaData, setPersonaData] = useState(null)
+  const [selectedSpeaker, setSelectedSpeaker] = useState('User 1')
   const [loading, setLoading] = useState(true)
   const [error,   setError]   = useState('')
 
   useEffect(() => {
     getPersona()
-      .then(res => setPersona(res.data))
+      .then(res => setPersonaData(res.data))
       .catch(err => setError(err.response?.data?.error || 'Failed to load persona'))
       .finally(() => setLoading(false))
   }, [])
@@ -59,6 +60,10 @@ export default function PersonaPanel() {
     </div>
   )
 
+  // Handle old structure vs new per-speaker structure
+  const isMultiSpeaker = personaData && ('User 1' in personaData || 'User 2' in personaData)
+  const persona = isMultiSpeaker ? (personaData[selectedSpeaker] || {}) : (personaData || {})
+
   const facts = persona?.personal_facts || {}
   const personality = persona?.personality || {}
   const style = persona?.communication_style || {}
@@ -70,6 +75,23 @@ export default function PersonaPanel() {
         <h2>🧠 User Persona</h2>
         <p>Extracted from {persona?.total_messages_analyzed?.toLocaleString() || '?'} messages using pattern analysis</p>
       </div>
+
+      {isMultiSpeaker && (
+        <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
+          <button 
+            className={`btn ${selectedSpeaker === 'User 1' ? 'btn-primary' : 'btn-ghost'}`} 
+            onClick={() => setSelectedSpeaker('User 1')}
+          >
+            User 1
+          </button>
+          <button 
+            className={`btn ${selectedSpeaker === 'User 2' ? 'btn-primary' : 'btn-ghost'}`} 
+            onClick={() => setSelectedSpeaker('User 2')}
+          >
+            User 2
+          </button>
+        </div>
+      )}
 
       {persona?.summary && (
         <div className="summary-box">{persona.summary}</div>
